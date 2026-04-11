@@ -2,7 +2,7 @@
 
 Technical stats wiki for [Neoxe.io](https://neoxe.io) — weapon classes, score tracking and reference tables.
 
-Live site: **[QDX41.github.io/TanksTechnical](https://QDX41.github.io/TanksTechnical)**
+Live site: **[QDX41.github.io/TanksTechnical](https://QDX41.github.io/Tanks-Technical)**
 
 ## Features
 - Live data pulled from `neoxe.io/menu-data.json` — always up to date
