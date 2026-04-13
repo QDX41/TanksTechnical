@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tanks Technical — Neoxe.io Wiki</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%2385008A'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-weight='900' font-size='13' fill='%23f8d4f0'>TT</text></svg>">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+
+body {
+    background: #100010;
+    color: #f8d4f0;
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    display: flex;
+    overflow: hidden;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #85008A; border-radius: 3px; }
+* { scrollbar-width: thin; scrollbar-color: #85008A transparent; }
+
+/* MAP BACKGROUND */
+#map-bg {
+    position: fixed; inset: 0; z-index: 0;
+    background: #100010; pointer-events: none; overflow: hidden;
+}
+#bg-canvas { position: absolute; inset: 0; }
+
+/* SIDEBAR */
+#sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    width: 52px;
+    background: rgba(16,0,16,0.93);
+    border-right: 1px solid #85008A44;
+    display: flex; flex-direction: column;
+    z-index: 100;
+    transition: width 180ms ease;
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+}
+#sidebar:hover { width: 212px; }
+
+#sidebar-logo {
+    height: 52px; display: flex; align-items: center;
+    padding: 0 12px; gap: 11px;
+    border-bottom: 1px solid #85008A44;
+    flex-shrink: 0; overflow: hidden; white-space: nowrap;
+    cursor: pointer;
+}
+#sidebar-logo:hover { background: rgba(133,0,138,0.15); }
+
+.logo-box {
+    width: 28px; height: 28px; flex-shrink: 0;
+    background: #85008A; border-radius: 4px;
+    border: 1px solid #cc00d4;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 12px; color: #f8d4f0;
+}
+
+.logo-txt {
+    font-size: 15px; font-weight: 700; color: #f8d4f0;
+    white-space: nowrap; letter-spacing: 0.04em;
+    opacity: 0; transition: opacity 150ms;
+}
+#sidebar:hover .logo-txt { opacity: 1; }
+
+#sidebar-nav { flex: 1; padding: 8px 0; overflow: hidden; }
+
+.nav-sep { height: 1px; background: #85008A33; margin: 5px 10px; }
+
+.nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px;
+    cursor: pointer; text-decoration: none;
+    border-left: 3px solid transparent;
+    color: #f8d4f077;
+    white-space: nowrap; overflow: hidden;
+    transition: all 140ms;
+}
+.nav-item:hover { background: rgba(133,0,138,0.18); color: #f8d4f0; border-left-color: #85008A55; }
+.nav-item.active { background: rgba(133,0,138,0.28); color: #f8d4f0; border-left-color: #85008A; }
+
+.nav-ico { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+
+.nav-lbl { font-size: 14px; font-weight: 600; opacity: 0; transition: opacity 150ms; white-space: nowrap; }
+#sidebar:hover .nav-lbl { opacity: 1; }
+
+#sidebar-bot { padding: 8px 0; border-top: 1px solid #85008A44; flex-shrink: 0; }
+
+/* MAIN */
+#main {
+    margin-left: 52px; flex: 1;
+    display: flex; flex-direction: column;
+    height: 100vh; position: relative; z-index: 10; overflow: hidden;
+}
+
+/* TOPBAR */
+#topbar {
+    height: 52px;
+    background: rgba(16,0,16,0.9);
+    border-bottom: 1px solid #85008A44;
+    display: flex; align-items: center;
+    padding: 0 20px; gap: 12px;
+    flex-shrink: 0; backdrop-filter: blur(10px);
+    position: relative;
+}
+
+#searchbar {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(133,0,138,0.12);
+    border: 1px solid #85008A55;
+    border-radius: 5px; padding: 6px 12px;
+    flex: 1; max-width: 420px;
+    transition: border-color 140ms;
+}
+#searchbar:focus-within { border-color: #85008A; background: rgba(133,0,138,0.2); }
+
+#search-input {
+    background: none; border: none; outline: none;
+    color: #f8d4f0; font-family: Arial; font-size: 14px; width: 100%;
+}
+#search-input::placeholder { color: #f8d4f044; }
+
+#search-drop {
+    position: absolute; top: 54px; left: 20px;
+    width: 420px;
+    background: rgba(18,0,18,0.97);
+    border: 1px solid #85008A;
+    border-radius: 6px; z-index: 200;
+    display: none; max-height: 340px; overflow-y: auto;
+    backdrop-filter: blur(12px);
+}
+#search-drop.open { display: block; }
+
+.si {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 14px; border-bottom: 1px solid #85008A22;
+    cursor: pointer; transition: background 120ms;
+}
+.si:hover { background: rgba(133,0,138,0.2); }
+.si:last-child { border-bottom: none; }
+.si-name { font-size: 14px; font-weight: 700; }
+.si-meta { font-size: 12px; color: #f8d4f055; }
+
+.fb {
+    font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px;
+    letter-spacing: 0.05em; text-transform: uppercase;
+}
+.fb-Regular   { background:#1a0044;color:#aa77ff;border:1px solid #330066; }
+.fb-Celestial { background:#3a003a;color:#f8d4f0;border:1px solid #85008A; }
+.fb-Primordial{ background:#220022;color:#cc88cc;border:1px solid #550055; }
+.fb-Boss      { background:#440000;color:#ff8888;border:1px solid #880000; }
+
+/* CONTENT */
+#content { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; }
+
+.page { display: none; min-height: 100%; }
+.page.active { display: flex; flex-direction: column; }
+
+/* HOME */
+#page-home {
+    align-items: center; justify-content: center;
+    text-align: center; padding: 40px 20px; min-height: 100%;
+}
+.home-wrap { max-width: 620px; width: 100%; }
+
+.home-title {
+    font-size: 56px; font-weight: 900; color: #f8d4f0;
+    letter-spacing: 0.02em; line-height: 1;
+    margin-bottom: 10px;
+    text-shadow: 0 0 40px #85008A66;
+}
+.home-title span { color: #85008A; -webkit-text-stroke: 1px #f8d4f0aa; }
+
+.home-sub { font-size: 14px; color: #f8d4f077; margin-bottom: 28px; line-height: 1.65; }
+
+.home-status { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 32px; }
+.sdot { width: 8px; height: 8px; border-radius: 50%; animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.stxt { font-size: 12px; color: #f8d4f055; letter-spacing: 0.04em; }
+
+.hstats { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-bottom: 36px; }
+.hstat {
+    background: rgba(133,0,138,0.12);
+    border: 1px solid #85008A44;
+    border-radius: 8px; padding: 13px 20px; min-width: 90px;
+}
+.hstat-v { font-size: 28px; font-weight: 900; color: #f8d4f0; line-height: 1; }
+.hstat-l { font-size: 10px; color: #f8d4f055; text-transform: uppercase; letter-spacing: 0.07em; margin-top: 3px; }
+
+.hcards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left; }
+.hcard {
+    background: rgba(133,0,138,0.08);
+    border: 1px solid #85008A33;
+    border-radius: 8px; padding: 16px;
+    cursor: pointer; transition: all 150ms;
+}
+.hcard:hover { background: rgba(133,0,138,0.2); border-color: #85008A; transform: translateY(-2px); }
+.hcard-ico { font-size: 22px; margin-bottom: 9px; }
+.hcard-t { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.hcard-d { font-size: 12px; color: #f8d4f066; line-height: 1.5; }
+
+/* PAGE WRAPPER */
+.pc { padding: 26px 26px 40px; flex: 1; }
+.ptitle { font-size: 22px; font-weight: 900; color: #f8d4f0; margin-bottom: 3px; }
+.ptitle span { color: #85008A; }
+.psub { font-size: 12px; color: #f8d4f044; margin-bottom: 18px; letter-spacing: 0.03em; }
+.pdiv { height: 1px; background: linear-gradient(90deg,#85008A,#85008A33,transparent); margin: 14px 0; }
+
+/* FILTER */
+.fbar { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.flbl { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #f8d4f044; margin-right: 2px; }
+.fbtn {
+    background: rgba(133,0,138,0.08); border: 1px solid #85008A33;
+    color: #f8d4f066; padding: 4px 11px; border-radius: 4px;
+    font-family: Arial; font-size: 12px; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.03em; transition: all 130ms;
+}
+.fbtn:hover { border-color: #85008A77; color: #f8d4f0; }
+.fbtn.on { background: rgba(133,0,138,0.28); border-color: #85008A; color: #f8d4f0; }
+
+/* TABLE */
+.twrap {
+    background: rgba(16,0,16,0.65);
+    border: 1px solid #85008A33;
+    border-radius: 8px; overflow: hidden;
+}
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead tr { background: rgba(133,0,138,0.16); border-bottom: 1px solid #85008A44; }
+th {
+    padding: 9px 13px; text-align: left;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+    color: #f8d4f055; cursor: pointer; user-select: none; white-space: nowrap; transition: color 130ms;
+}
+th:hover { color: #f8d4f0; }
+th.sorted { color: #85008A; }
+th.sorted::after { content:' ↓'; }
+th.sorted.asc::after { content:' ↑'; }
+
+tbody tr { border-bottom: 1px solid #85008A1a; transition: background 110ms; cursor: pointer; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(133,0,138,0.1); }
+tr.tankrow.exp { background: rgba(133,0,138,0.15); }
+
+td { padding: 9px 13px; color: #f8d4f0; vertical-align: middle; }
+td.mn { font-family: 'Courier New', monospace; font-size: 12px; color: #f8d4f077; }
+
+.tname { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; }
+.earr { font-size: 9px; color: #f8d4f022; transition: transform 150ms, color 150ms; flex-shrink: 0; }
+.tankrow.exp .earr { transform: rotate(90deg); color: #85008A; }
+
+.tier { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: 700; font-family: 'Courier New', monospace; }
+.t0{background:#111122;color:#5555aa;border:1px solid #222244}
+.t1{background:#112211;color:#44aa44;border:1px solid #224422}
+.t2{background:#222211;color:#aaaa44;border:1px solid #444422}
+.t3{background:#221111;color:#aa4444;border:1px solid #442222}
+.t4{background:#221122;color:#aa44aa;border:1px solid #442244}
+.tx{background:#1a001a;color:#f8d4f044;border:1px solid #85008A33}
+
+.wpill {
+    display: inline-block; padding: 2px 8px; border-radius: 3px;
+    font-size: 11px; font-weight: 700;
+    background: rgba(133,0,138,0.18); color: #f8d4f099;
+    border: 1px solid #85008A33;
+    text-transform: capitalize;
+}
+
+/* EXPAND ROWS */
+.bwrap { display: none; }
+.bwrap.open { display: table-row-group; }
+
+.brow td { background: rgba(6,0,6,0.88); padding: 0; border-bottom: 1px solid #85008A1a; }
+.brow:last-child td { border-bottom: none; }
+
+.binner {
+    padding: 16px 18px 18px 44px;
+    display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;
+}
+
+.tank-canvas-wrap {
+    flex-shrink: 0;
+    background: rgba(16,0,16,0.7);
+    border: 1px solid #85008A44;
+    border-radius: 8px; overflow: hidden;
+}
+
+/* BARREL BOXES */
+.bboxes { display: flex; flex-direction: column; gap: 9px; flex: 1; min-width: 260px; }
+
+.cosm-note { font-size: 11px; color: #f8d4f033; font-style: italic; margin-bottom: 3px; }
+.no-barrels { font-size: 13px; color: #f8d4f033; padding: 6px 0; }
+
+.iframe-note {
+    font-size: 11px; color: #f8d4f022;
+    font-family: 'Courier New', monospace; margin-top: 4px;
+    letter-spacing: 0.03em;
+}
+
+.bbox {
+    background: rgba(133,0,138,0.09);
+    border: 1px solid #85008A33;
+    border-radius: 6px; overflow: hidden;
+}
+
+.bbox-hdr {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 11px;
+    background: rgba(133,0,138,0.16);
+    border-bottom: 1px solid #85008A2a;
+}
+
+.bbox-class { font-size: 13px; font-weight: 700; text-transform: capitalize; }
+
+.bbox-cnt {
+    background: #85008A; color: #f8d4f0;
+    font-size: 11px; font-weight: 700;
+    padding: 1px 6px; border-radius: 10px;
+}
+
+.bbox-dirs {
+    font-size: 11px; color: #f8d4f044;
+    font-family: 'Courier New', monospace; margin-left: auto;
+}
+
+.bbox-body {
+    display: grid; grid-template-columns: 1fr 1fr;
+}
+
+.bsec { padding: 9px 11px; }
+.bsec:first-child { border-right: 1px solid #85008A1a; }
+
+.bsec-title {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #f8d4f033; margin-bottom: 6px;
+}
+
+.bsr {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 2px 0; border-bottom: 1px solid #85008A0d;
+}
+.bsr:last-child { border-bottom: none; }
+.bsr-l { font-size: 12px; color: #f8d4f066; }
+.bsr-v { font-family: 'Courier New', monospace; font-size: 12px; color: #f8d4f0; font-weight: 700; }
+.bsr-v.app { color: #f8a4f0; }
+.bsr-u { font-size: 10px; color: #f8d4f033; font-weight: 400; margin-left: 3px; }
+
+/* TRACKER */
+.tlay { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+.tcard { background: rgba(133,0,138,0.07); border: 1px solid #85008A33; border-radius: 8px; padding: 16px; }
+.tcard-t {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #f8d4f044; margin-bottom: 13px;
+    display: flex; align-items: center; gap: 7px;
+}
+.tcard-t::before { content:''; display:block; width:3px; height:12px; background:#85008A; border-radius:2px; }
+.trow { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+.tlbl { font-size: 12px; color: #f8d4f066; width: 118px; flex-shrink: 0; }
+.tinput {
+    background: rgba(16,0,16,0.7); border: 1px solid #85008A33;
+    border-radius: 4px; color: #f8d4f0;
+    font-family: 'Courier New', monospace; font-size: 13px;
+    padding: 5px 9px; flex: 1; outline: none; transition: border-color 130ms;
+}
+.tinput:focus { border-color: #85008A; }
+.tunit { font-size: 11px; color: #f8d4f033; font-family: 'Courier New', monospace; width: 52px; flex-shrink: 0; }
+.tres {
+    background: rgba(16,0,16,0.55); border: 1px solid #85008A22;
+    border-radius: 5px; padding: 10px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 6px;
+}
+.tres + .tres { margin-top: 5px; }
+.trl { font-size: 12px; color: #f8d4f055; }
+.trv { font-family: 'Courier New', monospace; font-size: 17px; font-weight: 700; color: #f8d4f0; }
+.trv.good { color: #44cc88; }
+.trv.warn { color: #ff8844; }
+
+/* LOADING */
+#loading {
+    position: fixed; inset: 0; background: #100010; z-index: 999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    transition: opacity 350ms;
+}
+#loading.fade { opacity: 0; pointer-events: none; }
+
+.ltitle { font-size: 50px; font-weight: 900; color: #f8d4f0; letter-spacing: 0.04em; text-shadow: 0 0 40px #85008A; }
+.ltitle span { color: #85008A; }
+.lbar-w { width: 200px; height: 3px; background: #85008A22; border-radius: 2px; overflow: hidden; }
+.lbar { height: 100%; width: 0%; background: #85008A; border-radius: 2px; transition: width 200ms ease; }
+.ltxt { font-size: 12px; color: #f8d4f033; letter-spacing: 0.08em; font-family: 'Courier New', monospace; }
+
+/* MANUAL JSON */
+#manual-wrap {
+    background: rgba(133,0,138,0.1); border: 1px solid #85008A;
+    border-radius: 8px; padding: 22px; max-width: 480px; width: 90%; text-align: center;
+}
+#manual-wrap p { margin-bottom: 12px; font-size: 14px; color: #f8d4f077; line-height: 1.6; }
+#manual-wrap textarea {
+    width: 100%; height: 100px;
+    background: rgba(16,0,16,0.85); border: 1px solid #85008A44;
+    border-radius: 4px; color: #f8d4f0;
+    font-family: 'Courier New', monospace; font-size: 12px;
+    padding: 8px; resize: none; outline: none; margin-bottom: 10px;
+}
+#manual-wrap button {
+    background: #85008A; border: none; color: #f8d4f0;
+    padding: 9px 22px; border-radius: 5px;
+    font-family: Arial; font-size: 13px; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.04em; transition: background 130ms;
+}
+#manual-wrap button:hover { background: #aa00b0; }
+
+@media (max-width: 700px) {
+    .hcards { grid-template-columns: 1fr; }
+    .tlay { grid-template-columns: 1fr; }
+    .bbox-body { grid-template-columns: 1fr; }
+    .bsec:first-child { border-right: none; border-bottom: 1px solid #85008A1a; }
+}
+</style>
+</head>
+<body>
+
+<div id="map-bg"><canvas id="bg-canvas"></canvas></div>
+
+<div id="loading">
+    <div class="ltitle">Tanks <span>Technical</span></div>
+    <div class="lbar-w"><div class="lbar" id="lbar"></div></div>
+    <div class="ltxt" id="ltxt">Loading data...</div>
+</div>
+
+<nav id="sidebar">
+    <div id="sidebar-logo" onclick="navigate('home')">
+        <div class="logo-box">TT</div>
+        <span class="logo-txt">Tanks Technical</span>
+    </div>
+    <div id="sidebar-nav">
+        <a class="nav-item active" data-page="home"><div class="nav-ico">⌂</div><span class="nav-lbl">Home</span></a>
+        <a class="nav-item" data-page="weapons"><div class="nav-ico">⊙</div><span class="nav-lbl">Weapon Classes</span></a>
+        <a class="nav-item" data-page="bodies"><div class="nav-ico">◉</div><span class="nav-lbl">Body Classes</span></a>
+        <a class="nav-item" data-page="bullets"><div class="nav-ico">●</div><span class="nav-lbl">Bullet Classes</span></a>
+        <div class="nav-sep"></div>
+        <a class="nav-item" data-page="tracker"><div class="nav-ico">◈</div><span class="nav-lbl">Score Tracker</span></a>
+        <div class="nav-sep"></div>
+        <a class="nav-item" href="https://neoxe.io" target="_blank"><div class="nav-ico">↗</div><span class="nav-lbl">Play Neoxe.io</span></a>
+    </div>
+    <div id="sidebar-bot">
+        <a class="nav-item" href="https://github.com/QDX41/TanksTechnical" target="_blank"><div class="nav-ico">◎</div><span class="nav-lbl">GitHub</span></a>
+    </div>
+</nav>
+
+<div id="main">
+    <div id="topbar">
+        <div id="searchbar">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f8d4f044" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="search-input" placeholder="Search tanks..." autocomplete="off">
+        </div>
+        <div id="search-drop"></div>
+    </div>
+
+    <div id="content">
+
+        <!-- HOME -->
+        <div id="page-home" class="page active">
+        <div class="home-wrap">
+            <div class="home-title">Tanks <span>Technical</span></div>
+            <p class="home-sub">Detailed weapon stats, score tracking and reference tables for Neoxe.io<br>Data loaded live from the game — always up to date</p>
+            <div class="home-status">
+                <div class="sdot" id="sdot" style="background:#888;box-shadow:none"></div>
+                <span class="stxt" id="stxt">Connecting...</span>
+            </div>
+            <div class="hstats">
+                <div class="hstat"><div class="hstat-v" id="hs-total">—</div><div class="hstat-l">Tanks</div></div>
+                <div class="hstat"><div class="hstat-v" id="hs-reg">—</div><div class="hstat-l">Regular</div></div>
+                <div class="hstat"><div class="hstat-v" id="hs-cel">—</div><div class="hstat-l">Celestial</div></div>
+                <div class="hstat"><div class="hstat-v" id="hs-pri">—</div><div class="hstat-l">Primordial</div></div>
+                <div class="hstat"><div class="hstat-v" id="hs-boss">—</div><div class="hstat-l">Bosses</div></div>
+            </div>
+            <div class="hcards">
+                <div class="hcard" onclick="navigate('weapons')"><div class="hcard-ico">⊙</div><div class="hcard-t">Weapon Classes</div><div class="hcard-d">Full barrel stats with tank preview and applied calculations</div></div>
+                <div class="hcard" onclick="navigate('tracker')"><div class="hcard-ico">◈</div><div class="hcard-t">Score Tracker</div><div class="hcard-d">Calculate score rate and project your goals</div></div>
+                <div class="hcard" onclick="navigate('bodies')"><div class="hcard-ico">◉</div><div class="hcard-t">Body Classes</div><div class="hcard-d">HP, damage and speed multipliers for all body types</div></div>
+                <div class="hcard" onclick="navigate('bullets')"><div class="hcard-ico">●</div><div class="hcard-t">Bullet Classes</div><div class="hcard-d">Base stats for all projectile types</div></div>
+            </div>
+        </div>
+        </div>
+
+        <!-- WEAPONS -->
+        <div id="page-weapons" class="page">
+        <div class="pc">
+            <div class="ptitle">Weapon <span>Classes</span></div>
+            <div class="psub">Click any row to expand tank preview and barrel stats · <span id="wc-count">—</span> tanks shown</div>
+            <div class="fbar">
+                <span class="flbl">Family</span>
+                <button class="fbtn on" data-g="family" data-v="all">All</button>
+                <button class="fbtn" data-g="family" data-v="Regular">Regular</button>
+                <button class="fbtn" data-g="family" data-v="Celestial">Celestial</button>
+                <button class="fbtn" data-g="family" data-v="Primordial">Primordial</button>
+                <button class="fbtn" data-g="family" data-v="Boss">Boss</button>
+            </div>
+            <div class="fbar">
+                <span class="flbl">Weapon</span>
+                <button class="fbtn on" data-g="wtype" data-v="all">All</button>
+                <button class="fbtn" data-g="wtype" data-v="bullet">Bullet</button>
+                <button class="fbtn" data-g="wtype" data-v="drone">Drone</button>
+                <button class="fbtn" data-g="wtype" data-v="trap">Trap</button>
+                <button class="fbtn" data-g="wtype" data-v="minion">Minion</button>
+            </div>
+            <div class="twrap">
+                <table>
+                    <thead><tr>
+                        <th data-sort="name">Tank</th>
+                        <th data-sort="family">Family</th>
+                        <th data-sort="tier">Tier</th>
+                        <th>Primary Weapon</th>
+                        <th data-sort="reload">Reload</th>
+                        <th data-sort="damage">Raw DMG</th>
+                        <th data-sort="health">Raw HP</th>
+                    </tr></thead>
+                    <tbody id="wc-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+
+        <!-- BODIES -->
+        <div id="page-bodies" class="page">
+        <div class="pc">
+            <div class="ptitle">Body <span>Classes</span></div>
+            <div class="psub">Multipliers applied to base tank stats</div>
+            <div class="twrap">
+                <table>
+                    <thead><tr>
+                        <th>Body</th><th>Max HP ×</th><th>Body DMG ×</th>
+                        <th>Move SPD ×</th><th>Hitbox ×</th><th>Size ×</th><th>Camera ×</th>
+                    </tr></thead>
+                    <tbody id="body-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+
+        <!-- BULLETS -->
+        <div id="page-bullets" class="page">
+        <div class="pc">
+            <div class="ptitle">Bullet <span>Classes</span></div>
+            <div class="psub">Base stats — barrel values are multiplied by these</div>
+            <div class="twrap">
+                <table>
+                    <thead><tr>
+                        <th>Class</th><th>Base DMG<br><span style="font-weight:400;font-size:10px">dmg/iframe</span></th>
+                        <th>Base HP</th><th>Base SPD<br><span style="font-weight:400;font-size:10px">qy/s</span></th>
+                        <th>Base Lifetime<br><span style="font-weight:400;font-size:10px">s</span></th>
+                        <th>Size ×</th><th>Hitbox ×</th><th>Collision</th>
+                    </tr></thead>
+                    <tbody id="bullet-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+
+        <!-- TRACKER -->
+        <div id="page-tracker" class="page">
+        <div class="pc">
+            <div class="ptitle">Score <span>Tracker</span></div>
+            <div class="psub">Scores: 20.54b or 20,54b · Time goals: 2h or 30 min</div>
+            <div class="tlay">
+                <div class="tcard">
+                    <div class="tcard-t">Current Data</div>
+                    <div class="trow"><span class="tlbl">Current Score</span><input class="tinput" id="t-curscore" placeholder="e.g. 347.67b"><span class="tunit">billion</span></div>
+                    <div class="trow"><span class="tlbl">Current Time</span><input class="tinput" id="t-curtime" type="datetime-local"><span class="tunit"></span></div>
+                    <div style="height:10px"></div>
+                    <div class="tcard-t">Past Reference</div>
+                    <div class="trow"><span class="tlbl">Past Score</span><input class="tinput" id="t-pastscore" placeholder="e.g. 71.96b"><span class="tunit">billion</span></div>
+                    <div class="trow"><span class="tlbl">Past Timestamp</span><input class="tinput" id="t-pasttime" type="datetime-local"><span class="tunit"></span></div>
+                </div>
+                <div class="tcard">
+                    <div class="tcard-t">Calculations</div>
+                    <div class="tres"><span class="trl">Elapsed Time</span><span class="trv" id="r-elapsed">—</span></div>
+                    <div class="tres"><span class="trl">Score Rate</span><span class="trv" id="r-rate">—</span></div>
+                    <div class="tres"><span class="trl">Est. Total Playtime</span><span class="trv" id="r-playtime">—</span></div>
+                </div>
+                <div class="tcard">
+                    <div class="tcard-t">Score Goal</div>
+                    <div class="trow"><span class="tlbl">Goal Score</span><input class="tinput" id="t-goalsc" placeholder="e.g. 500b"><span class="tunit">billion</span></div>
+                    <div class="tres" style="margin-top:10px"><span class="trl">Hours to Goal</span><span class="trv" id="r-goalh">—</span></div>
+                    <div class="tres"><span class="trl">Goal Achieved At</span><span class="trv" id="r-goalat" style="font-size:13px">—</span></div>
+                </div>
+                <div class="tcard">
+                    <div class="tcard-t">Time Goal</div>
+                    <div class="trow"><span class="tlbl">Hours from now</span><input class="tinput" id="t-goalh" placeholder="e.g. 2h or 30 min"><span class="tunit"></span></div>
+                    <div class="trow"><span class="tlbl">Or clock time</span><input class="tinput" id="t-goalclock" type="datetime-local"><span class="tunit"></span></div>
+                    <div class="tres" style="margin-top:10px"><span class="trl">Score at +hours</span><span class="trv" id="r-atph">—</span></div>
+                    <div class="tres"><span class="trl">Score at clock time</span><span class="trv" id="r-atclock">—</span></div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="js/background.js"></script>
+<script src="js/tankdrawer.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
