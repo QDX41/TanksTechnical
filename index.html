@@ -381,11 +381,11 @@ td.mn { font-family: 'Courier New', monospace; font-size: 12px; color: #f8d4f077
 
 /* LOADING */
 #loading {
-    position: fixed; inset: 0; background: #100010; z-index: 999;
+    position: fixed; inset: 0; background: #100010; z-index: 999; pointer-events: all;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
     transition: opacity 350ms;
 }
-#loading.fade { opacity: 0; pointer-events: none; }
+#loading.fade { opacity: 0; pointer-events: none !important; }
 
 .ltitle { font-size: 50px; font-weight: 900; color: #f8d4f0; letter-spacing: 0.04em; text-shadow: 0 0 40px #85008A; }
 .ltitle span { color: #85008A; }
@@ -420,6 +420,25 @@ td.mn { font-family: 'Courier New', monospace; font-size: 12px; color: #f8d4f077
     .bbox-body { grid-template-columns: 1fr; }
     .bsec:first-child { border-right: none; border-bottom: 1px solid #85008A1a; }
 }
+
+/* SUBNAV */
+.nav-subnav { overflow: hidden; max-height: 0; transition: max-height 200ms ease; }
+.nav-subnav.open { max-height: 200px; }
+
+.nav-subitem {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 12px 7px 30px;
+    cursor: pointer; color: #f8d4f055;
+    border-left: 3px solid transparent;
+    transition: all 130ms; white-space: nowrap; overflow: hidden;
+}
+.nav-subitem:hover { background: rgba(133,0,138,0.12); color: #f8d4f0; }
+.nav-subitem.active { color: #f8d4f0; border-left-color: #85008A66; background: rgba(133,0,138,0.15); }
+
+.nav-subdot { font-size: 16px; color: #85008A; flex-shrink: 0; }
+.nav-sublbl { font-size: 13px; font-weight: 600; opacity: 0; transition: opacity 150ms; white-space: nowrap; }
+#sidebar:hover .nav-sublbl { opacity: 1; }
+
 </style>
 </head>
 <body>
@@ -480,10 +499,10 @@ td.mn { font-family: 'Courier New', monospace; font-size: 12px; color: #f8d4f077
                 <div class="hstat"><div class="hstat-v" id="hs-boss">—</div><div class="hstat-l">Bosses</div></div>
             </div>
             <div class="hcards">
-                <div class="hcard" onclick="navigate('weapons')"><div class="hcard-ico">⊙</div><div class="hcard-t">Weapon Classes</div><div class="hcard-d">Full barrel stats with tank preview and applied calculations</div></div>
-                <div class="hcard" onclick="navigate('tracker')"><div class="hcard-ico">◈</div><div class="hcard-t">Score Tracker</div><div class="hcard-d">Calculate score rate and project your goals</div></div>
-                <div class="hcard" onclick="navigate('bodies')"><div class="hcard-ico">◉</div><div class="hcard-t">Body Classes</div><div class="hcard-d">HP, damage and speed multipliers for all body types</div></div>
-                <div class="hcard" onclick="navigate('bullets')"><div class="hcard-ico">●</div><div class="hcard-t">Bullet Classes</div><div class="hcard-d">Base stats for all projectile types</div></div>
+                <div class="hcard" id="home-card-weapons" onclick="navigate('weapons')"><div class="hcard-ico">⊙</div><div class="hcard-t">Weapon Classes</div><div class="hcard-d">Full barrel stats with tank preview and applied calculations</div></div>
+                <div class="hcard" id="home-card-tracker" onclick="navigate('tracker')"><div class="hcard-ico">◈</div><div class="hcard-t">Score Tracker</div><div class="hcard-d">Calculate score rate and project your goals</div></div>
+                <div class="hcard" id="home-card-bodies" onclick="navigate('bodies')"><div class="hcard-ico">◉</div><div class="hcard-t">Body Classes</div><div class="hcard-d">HP, damage and speed multipliers for all body types</div></div>
+                <div class="hcard" id="home-card-bullets" onclick="navigate('bullets')"><div class="hcard-ico">●</div><div class="hcard-t">Bullet Classes</div><div class="hcard-d">Base stats for all projectile types</div></div>
             </div>
         </div>
         </div>
